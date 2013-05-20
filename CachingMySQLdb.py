@@ -15,10 +15,10 @@ class CachingCursorMixIn(MySQLdb.cursors.CursorStoreResultMixIn):
         #contains correct query string (this guards against any md5 
         #collisions)
 
-        if q.strip().lower()[:6] != 'select'
+        if q.strip().lower()[:6] != 'select':
             return super(CachingCursorMixIn, self)._query(q)
 
-        md5 = Hashlib.md5(q).hex_digest()
+        md5 = hashlib.md5(q).hexdigest()
         cache_file = os.path.join(self.storage_dir, md5 + '.txt')
 
         if os.path.isfile(cache_file):
@@ -38,7 +38,7 @@ class CachingCursorMixIn(MySQLdb.cursors.CursorStoreResultMixIn):
 
         #Before returning, cache results for next time
         cached_results = {"rows" : self._rows, "query" : q}
-        handle = open(cache_file, 'r')
+        handle = open(cache_file, 'w')
         pickle.dump(cached_results, handle)
         handle.close()
         print "Saved query results to:", cache_file        
