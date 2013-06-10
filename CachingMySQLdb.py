@@ -3,6 +3,7 @@ import MySQLdb.connections
 import os
 import hashlib
 import cPickle as pickle
+import time
 
 class CachingCursorMixIn(MySQLdb.cursors.CursorStoreResultMixIn):
 
@@ -67,6 +68,7 @@ class CachingCursorMixIn(MySQLdb.cursors.CursorStoreResultMixIn):
         cached_results["lastrowid"] = self.lastrowid
         cached_results["warnings"] = self._warnings
         cached_results["info"] = self._info
+        cached_results["timestamp"] = time.time()
 
         handle = open(cache_file, 'w')
         pickle.dump(cached_results, handle)
