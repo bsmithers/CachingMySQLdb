@@ -22,12 +22,12 @@ class CachingCursorMixIn(MySQLdb.cursors.CursorStoreResultMixIn):
 
         return retval
 
-    def _do_query(self, q):
+    def _query(self, q):
         """Either queries the database or reads results from a previously
         cache result set"""
 
         if not self.do_cache or q.strip().lower()[:6] != 'select':
-            return super(CachingCursorMixIn, self)._do_query(q)
+            return super(CachingCursorMixIn, self)._query(q)
 
         self._last_executed = q
 
@@ -40,8 +40,10 @@ class CachingCursorMixIn(MySQLdb.cursors.CursorStoreResultMixIn):
             handle.close()
             if cached_results["query"]  == q and (self.acceptable_age == 0 or time.time() - cached_results["timestamp"] <= self.acceptable_age):
                 print "Read query results from:", cache_file
-                # Set all relevant variables - those set inside _do_get_result
-                self._result = cached_results["result"]
+                # Set all relevant variables - those set inside _do_get_result, except result
+                # which we handle differently as it can't be pickled.
+                self._rows = cached_results["rows"]
+                self._result = None
                 self.rowcount = cached_results["rowcount"]
                 self.rownumber = cached_results["rownumber"]
                 self.description = cached_results["description"]
@@ -52,12 +54,12 @@ class CachingCursorMixIn(MySQLdb.cursors.CursorStoreResultMixIn):
                 return self.rowcount
 
         #Unable to get a cached result, so run query via parent
-        retval = super(CachingCursorMixIn, self)._do_query(q)
+        retval = super(CachingCursorMixIn, self)._query(q)
 
         #Before returning, cache results for next time
         cached_results = {}
-        cached_resutls["query"] = q
-        cached_results["result"] = self._result
+        cached_results["query"] = q
+        cached_results["rows"] = self._rows
         cached_results["rowcount"] = self.rowcount
         cached_results["rownumber"] = self.rownumber
         cached_results["description"] = self.description
