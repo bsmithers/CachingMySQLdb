@@ -40,7 +40,6 @@ class CachingCursorMixIn(MySQLdb.cursors.CursorStoreResultMixIn):
             cached_results = pickle.load(handle)
             handle.close()
             if cached_results["query"]  == q and (self.acceptable_age == 0 or time.time() - cached_results["timestamp"] <= self.acceptable_age):
-                print "Read query results from:", cache_file
                 # Set all relevant variables - those set inside _do_get_result, except result
                 # which we handle differently as it can't be pickled.
                 self._rows = cached_results["rows"]
@@ -73,7 +72,6 @@ class CachingCursorMixIn(MySQLdb.cursors.CursorStoreResultMixIn):
         handle = open(cache_file, 'w')
         pickle.dump(cached_results, handle)
         handle.close()
-        print "Saved query results to:", cache_file        
 
         return retval
 
